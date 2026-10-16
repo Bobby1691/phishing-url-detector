@@ -27,14 +27,16 @@ def get_reasons(features):
         reasons.append("The connection is not secured with HTTPS.")
     if features["has_suspicious_word"] == 1:
         reasons.append(
-            "The URL contains words often seen in phishing links (such as login or verify)."
+            "The domain contains words often seen in phishing links (such as login or verify)."
         )
-    if features["url_length"] > 75:
-        reasons.append("The URL is unusually long.")
-    if features["special_chars"] > 12:
-        reasons.append("The URL contains many special characters.")
+    if features["has_at_symbol"] == 1:
+        reasons.append("The URL contains an @ symbol, which can hide the real destination.")
+    if features["domain_length"] > 30:
+        reasons.append("The domain name is unusually long.")
+    if features["num_hyphens"] >= 3:
+        reasons.append("The domain contains many hyphens.")
     if features["num_subdomains"] >= 3:
-        reasons.append("The URL has many subdomains.")
+        reasons.append("The domain has many subdomains.")
     return reasons
 
 
@@ -76,6 +78,7 @@ def main():
         else:
             print("No obvious warning signs were found in the URL.")
 
+        print("Note: only the domain part of the URL is analyzed.")
         print("Note: this is an estimate, not a guarantee of safety.")
 
 

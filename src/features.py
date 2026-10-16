@@ -1,7 +1,14 @@
-"""Feature extraction for the phishing URL detection project."""
+"""Feature extraction for the phishing URL detection project.
+
+Only the scheme and the domain part of a URL are analyzed. The training
+dataset contains no legitimate URLs with a path or query string, so
+path-based features would only teach the model that "has a path" means phishing.
+"""
 
 import ipaddress
 from urllib.parse import urlparse
+
+SUSPICIOUS_WORDS = ["login", "verify", "account", "secure", "update"]
 
 
 def extract_features(url):
@@ -11,27 +18,33 @@ def extract_features(url):
     # Add a scheme if it is missing so that the URL can be parsed correctly.
     full_url = url if "://" in url else "http://" + url
     try:
-        host = urlparse(full_url).hostname or ""
+        parsed = urlparse(full_url)
+        host = parsed.hostname or ""
+        netloc = parsed.netloc
     except ValueError:
         # Malformed URLs (for example an unclosed bracket) cannot be parsed.
-        host = ""
+        host, netloc = "", ""
 
-    # Basic structure of the URL.
-    features["url_length"] = len(url)
+    host_length = len(host)
+
+    # Basic structure of the domain.
     features["has_https"] = 1 if url.startswith("https") else 0
+    features["domain_length"] = host_length
+    features["num_dots"] = host.count(".")
+    features["num_hyphens"] = host.count("-")
 
-    # Count every character that is not a letter or a digit.
-    features["special_chars"] = 0
-    for ch in url:
-        if not ch.isalnum():
-            features["special_chars"] += 1
+    # Digits in the domain.
+    num_digits = sum(ch.isdigit() for ch in host)
+    features["num_digits"] = num_digits
+    features["digit_ratio"] = num_digits / host_length if host_length else 0
 
-    # Flag words that phishing URLs often contain.
-    words = ["login", "verify", "account", "secure", "update"]
-    features["has_suspicious_word"] = 0
-    for w in words:
-        if w in url.lower():
-            features["has_suspicious_word"] = 1
+    # An "@" in the network location can hide the real destination.
+    features["has_at_symbol"] = 1 if "@" in netloc else 0
+
+    # Flag words that phishing domains often contain.
+    features["has_suspicious_word"] = (
+        1 if any(word in host.lower() for word in SUSPICIOUS_WORDS) else 0
+    )
 
     # Check whether the host is a raw IP address instead of a domain name.
     try:
@@ -52,4 +65,4 @@ def extract_features(url):
 
 if __name__ == "__main__":
     print(extract_features("http://192.168.1.1/login"))
-    print(extract_features("https://www.google.com"))
+    print(extract_features("https://en.wikipedia.org/wiki/Phishing"))
