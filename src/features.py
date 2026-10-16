@@ -10,7 +10,11 @@ def extract_features(url):
 
     # Add a scheme if it is missing so that the URL can be parsed correctly.
     full_url = url if "://" in url else "http://" + url
-    host = urlparse(full_url).hostname or ""
+    try:
+        host = urlparse(full_url).hostname or ""
+    except ValueError:
+        # Malformed URLs (for example an unclosed bracket) cannot be parsed.
+        host = ""
 
     # Basic structure of the URL.
     features["url_length"] = len(url)
