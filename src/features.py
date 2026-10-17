@@ -29,8 +29,8 @@ def extract_features(url):
     """Return a dictionary of numeric features extracted from a URL string."""
     features = {}
 
-    # Add a scheme if it is missing so that the URL can be parsed correctly.
-    full_url = url if "://" in url else "http://" + url
+    # If the scheme is missing, assume HTTPS (browsers do the same for typed domains).
+    full_url = url if "://" in url else "https://" + url
     try:
         parsed = urlparse(full_url)
         host = parsed.hostname or ""
@@ -46,7 +46,7 @@ def extract_features(url):
     host_length = len(host)
 
     # Basic structure of the domain.
-    features["has_https"] = 1 if url.startswith("https") else 0
+    features["has_https"] = 1 if full_url.lower().startswith("https") else 0
     features["domain_length"] = host_length
     features["num_dots"] = host.count(".")
     features["num_hyphens"] = host.count("-")

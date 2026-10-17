@@ -1,10 +1,11 @@
 """FastAPI backend for the phishing URL detection project."""
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from predict import analyze_url, load_model
+from validation import InvalidURLError
 
 app = FastAPI(title="Phishing URL Detector")
 
@@ -35,4 +36,7 @@ def home():
 @app.post("/analyze")
 def analyze(request: URLRequest):
     """Return the verdict, risk score and warning signs for a URL."""
-    return analyze_url(model, request.url)
+    try:
+        return analyze_url(model, request.url)
+    except InvalidURLError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error

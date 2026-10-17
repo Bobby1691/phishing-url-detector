@@ -23,10 +23,15 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: url.trim() }),
       });
-      if (!response.ok) {
-        throw new Error("The server returned an error.");
+
+      if (response.ok) {
+        setResult(await response.json());
+      } else if (response.status === 400) {
+        const data = await response.json();
+        setError(data.detail);
+      } else {
+        setError("The server returned an error. Please try again.");
       }
-      setResult(await response.json());
     } catch {
       setError("Could not reach the API. Is the backend running?");
     } finally {
@@ -73,7 +78,9 @@ function App() {
             <p>No obvious warning signs were found in the URL.</p>
           )}
 
-          <p className="note">This is an estimate, not a guarantee of safety. Only the domain part of the URL is analyzed.</p>
+          <p className="note">
+            This is an estimate, not a guarantee of safety. Only the domain part of the URL is analyzed.
+          </p>
         </section>
       )}
     </main>

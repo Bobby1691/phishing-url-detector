@@ -4,6 +4,7 @@ import pandas as pd
 from xgboost import XGBClassifier
 
 from features import extract_features
+from validation import InvalidURLError, validate_url
 
 MODEL_PATH = "models/phishing_model.json"
 
@@ -41,7 +42,13 @@ def get_reasons(features):
 
 
 def analyze_url(model, url):
-    """Return the verdict, risk score and reasons for a single URL."""
+    """Return the verdict, risk score and reasons for a single URL.
+
+    Raises InvalidURLError if the text is not a valid web address.
+    """
+    url = url.strip()
+    validate_url(url)
+
     features = extract_features(url)
     X = pd.DataFrame([features])
 
@@ -65,7 +72,12 @@ def main():
         if not url:
             break
 
-        result = analyze_url(model, url)
+        try:
+            result = analyze_url(model, url)
+        except InvalidURLError as error:
+            print(error)
+            continue
+
         print(f"Verdict: {result['verdict']}")
         print(f"Risk score: {result['risk_score']}%")
 

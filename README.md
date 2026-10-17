@@ -8,7 +8,7 @@ A machine learning project that checks whether a URL looks legitimate or phishin
 2. An XGBoost model predicts the probability that the URL is phishing.
 3. A FastAPI backend serves the model, and a React frontend shows the result.
 
-The application only analyzes the text of the URL. It never visits the website. The path and query part of the URL are ignored on purpose (see "Dataset bias" below).
+If a URL is entered without a scheme (for example github.com), HTTPS is assumed, as browsers do. Text that is not a valid web address is rejected with an error message. The application only analyzes the text of the URL. It never visits the website. The path and query part of the URL are ignored on purpose (see "Dataset bias" below).
 
 ## Results
 
@@ -43,6 +43,8 @@ Each shortcut was found by testing the model on real URLs, not by the test score
       compare_models.py Compares the three models
       train_final.py    Trains and saves the final model
       predict.py        Returns verdict, risk score and warning signs
+      validation.py     Checks that the input is a valid web address
+      threshold_report.py  Shows precision and recall at different thresholds
       api.py            FastAPI backend
     frontend/           React application
 
@@ -89,6 +91,7 @@ The dataset is not included in this repository. Please check the dataset page fo
 - Legitimate websites with a real subdomain can get a borderline score. In a manual test, https://mail.google.com/ received about 59% risk and was reported as phishing.
 - Only the domain is analyzed, so a phishing page hosted on a trusted domain cannot be detected.
 - The model uses only ten simple domain features.
+- Input is checked only for the shape of a web address. The application does not check whether a domain really exists, so text such as random.word is analyzed like any other domain.
 - The warning signs shown to the user are simple rules. They show which suspicious signs are present, not exactly why the model made its decision.
 
 ## Ethics
