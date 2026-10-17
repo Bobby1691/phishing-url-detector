@@ -115,3 +115,7 @@ This project is for defense only. It must not be used to create or improve phish
 - More domain features, such as domain age
 - A better balanced dataset with realistic legitimate URLs
 - Browser extension that warns about suspicious sites
+
+## License
+
+The code in this repository is released under the MIT License (see the LICENSE file). The dataset is not part of this repository and has its own license, which is stated on the dataset page.
