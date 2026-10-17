@@ -4,7 +4,7 @@ A machine learning project that checks whether a URL looks legitimate or phishin
 
 ## How it works
 
-1. Features are extracted from the scheme and domain of the URL: HTTPS, domain length, dots, hyphens, digits, "@" symbol, suspicious words, raw IP address and number of subdomains.
+1. Features are extracted from the scheme and domain of the URL: HTTPS, domain length, dots, hyphens, digits, "@" symbol, suspicious words, raw IP address and number of subdomains. A leading "www." is removed, so "example.com" and "www.example.com" give the same result.
 2. An XGBoost model predicts the probability that the URL is phishing.
 3. A FastAPI backend serves the model, and a React frontend shows the result.
 
@@ -16,17 +16,21 @@ Evaluated on a 20% test split (47,159 URLs). Precision, recall and F1 are measur
 
 | Model | Accuracy | Precision | Recall | F1 |
 |---|---|---|---|---|
-| Logistic Regression | 0.9086 | 0.9746 | 0.8075 | 0.8832 |
-| Random Forest | 0.9386 | 0.9740 | 0.8802 | 0.9247 |
-| XGBoost | 0.9386 | 0.9749 | 0.8793 | 0.9246 |
+| Logistic Regression | 0.9172 | 0.9660 | 0.8361 | 0.8964 |
+| Random Forest | 0.9297 | 0.9646 | 0.8676 | 0.9135 |
+| XGBoost | 0.9298 | 0.9653 | 0.8673 | 0.9136 |
 
-XGBoost is used as the final model. Random Forest performs almost the same. When the model reports phishing it is right about 97.5% of the time, but it misses about 12% of real phishing URLs.
+XGBoost is used as the final model. Random Forest performs almost the same. When the model reports phishing it is right about 96.5% of the time, but it misses about 13% of real phishing URLs.
 
 ## Dataset bias
 
-An earlier version of this project also used path and query features and reached about 0.995 accuracy. That score was misleading. In the training dataset, almost none of the legitimate URLs has a path or a query string (they are mostly homepages), while about 27% of the phishing URLs do. The model learned "has a path means phishing" and flagged normal links such as Wikipedia articles as phishing with 100% risk.
+The training dataset contains shortcuts that make a model look better than it really is. Three of them were found while testing with real websites:
 
-For this reason only the scheme and the domain are analyzed now. In the same dataset almost all legitimate URLs use HTTPS, so the model may treat plain HTTP as a strong phishing signal even for old but legitimate websites.
+- **Path and query.** Almost none of the legitimate URLs has a path or a query string (they are mostly homepages), while about 27% of the phishing URLs do. A version that used these features reached about 0.995 accuracy, but it flagged normal links such as Wikipedia articles as phishing with 100% risk. Path and query features were removed.
+- **"www." prefix.** No legitimate URL in the dataset is a bare domain without "www.". The model therefore flagged github.com, python.org and wikipedia.org as phishing with 100% risk while accepting their "www." versions. A leading "www." is now removed before features are computed.
+- **HTTPS.** Almost all legitimate URLs in the dataset use HTTPS, so the model may treat plain HTTP as a strong phishing signal, even for old but legitimate websites.
+
+Each shortcut was found by testing the model on real URLs, not by the test score, which stayed high.
 
 ## Project structure
 
@@ -82,6 +86,7 @@ The dataset is not included in this repository. Please check the dataset page fo
 
 - This tool gives a risk estimate, not a guarantee. It can wrongly flag safe websites and can miss real phishing sites.
 - The scores above are measured on one dataset. Real-world URLs may behave differently.
+- Legitimate websites with a real subdomain can get a borderline score. In a manual test, https://mail.google.com/ received about 59% risk and was reported as phishing.
 - Only the domain is analyzed, so a phishing page hosted on a trusted domain cannot be detected.
 - The model uses only ten simple domain features.
 - The warning signs shown to the user are simple rules. They show which suspicious signs are present, not exactly why the model made its decision.
@@ -92,6 +97,7 @@ This project is for defense only. It must not be used to create or improve phish
 
 ## Future work
 
+- A middle "suspicious" level for scores close to 50%
 - More domain features, such as domain age
 - A better balanced dataset with realistic legitimate URLs
 - Browser extension that warns about suspicious sites

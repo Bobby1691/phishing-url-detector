@@ -3,12 +3,26 @@
 Only the scheme and the domain part of a URL are analyzed. The training
 dataset contains no legitimate URLs with a path or query string, so
 path-based features would only teach the model that "has a path" means phishing.
+A leading "www." is removed so that "example.com" and "www.example.com"
+produce the same features.
 """
 
 import ipaddress
 from urllib.parse import urlparse
 
 SUSPICIOUS_WORDS = ["login", "verify", "account", "secure", "update"]
+
+# Domain endings made of two labels. They count as one ending, not as a subdomain.
+TWO_PART_SUFFIXES = {
+    "co.uk",
+    "org.uk",
+    "ac.uk",
+    "gov.uk",
+    "com.au",
+    "co.in",
+    "co.jp",
+    "com.br",
+}
 
 
 def extract_features(url):
@@ -24,6 +38,10 @@ def extract_features(url):
     except ValueError:
         # Malformed URLs (for example an unclosed bracket) cannot be parsed.
         host, netloc = "", ""
+
+    # Treat "www.example.com" and "example.com" as the same site.
+    if host.startswith("www."):
+        host = host[4:]
 
     host_length = len(host)
 
@@ -53,16 +71,17 @@ def extract_features(url):
     except ValueError:
         features["has_ip_address"] = 0
 
-    # Count subdomains: for "www.example.com" the parts are www, example, com.
+    # Count subdomains: for "mail.example.com" the parts are mail, example, com.
     if features["has_ip_address"] == 1:
         features["num_subdomains"] = 0
     else:
         parts = host.split(".")
-        features["num_subdomains"] = max(len(parts) - 2, 0)
+        suffix_length = 2 if ".".join(parts[-2:]) in TWO_PART_SUFFIXES else 1
+        features["num_subdomains"] = max(len(parts) - suffix_length - 1, 0)
 
     return features
 
 
 if __name__ == "__main__":
     print(extract_features("http://192.168.1.1/login"))
-    print(extract_features("https://en.wikipedia.org/wiki/Phishing"))
+    print(extract_features("https://www.bbc.co.uk/news"))

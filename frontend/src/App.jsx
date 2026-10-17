@@ -73,7 +73,7 @@ function App() {
             <p>No obvious warning signs were found in the URL.</p>
           )}
 
-          <p className="note">This is an estimate, not a guarantee of safety.</p>
+          <p className="note">This is an estimate, not a guarantee of safety. Only the domain part of the URL is analyzed.</p>
         </section>
       )}
     </main>
