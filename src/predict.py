@@ -45,7 +45,7 @@ def get_reasons(features):
 def analyze_url(model, url):
     """Return the verdict, risk score and reasons for a single URL.
 
-    The verdict is "Phishing", "Suspicious" or "Legitimate".
+    The verdict is "Phishing", "Suspicious" or "Unverified".
     Raises InvalidURLError if the text is not a valid web address.
     """
     url = url.strip()
@@ -63,7 +63,7 @@ def analyze_url(model, url):
     elif risk_score >= SUSPICIOUS_THRESHOLD:
         verdict = "Suspicious"
     else:
-        verdict = "Legitimate"
+        verdict = "Unverified"
 
     return {
         "verdict": verdict,
@@ -98,7 +98,7 @@ def main():
         elif result["verdict"] == "Suspicious":
             print("The model is not sure about this URL. Be careful with it.")
         else:
-            print("No obvious warning signs were found in the URL.")
+            print("No strong URL-level warning signs were found; domain reputation has not been verified.")
 
         print("Note: only the domain part of the URL is analyzed.")
         print("Note: this is an estimate, not a guarantee of safety.")

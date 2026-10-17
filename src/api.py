@@ -12,7 +12,7 @@ app = FastAPI(title="Phishing URL Detector")
 # Allow only the React development server to call this API from the browser.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"],
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
