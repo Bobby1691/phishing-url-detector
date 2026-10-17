@@ -77,3 +77,7 @@ button:disabled {
   font-size: 14px;
   margin-bottom: 0;
 }
+
+.result.suspicious {
+  border-color: #d97706;
+}

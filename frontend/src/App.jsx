@@ -3,6 +3,20 @@ import "./App.css";
 
 const API_URL = "http://127.0.0.1:8000/analyze";
 
+// How each verdict returned by the API is shown on the page.
+const LEVELS = {
+  Phishing: { className: "phishing", title: "🔴 Phishing Detected" },
+  Suspicious: { className: "suspicious", title: "🟡 Suspicious" },
+  Legitimate: { className: "legitimate", title: "🟢 Looks Legitimate" },
+};
+
+// Text shown when no individual warning sign was found.
+const NO_WARNING_TEXT = {
+  Phishing: "The model flagged this URL from a combination of features.",
+  Suspicious: "No single obvious warning sign was found, but the overall pattern looks unusual.",
+  Legitimate: "No obvious warning signs were found in the URL.",
+};
+
 function App() {
   const [url, setUrl] = useState("");
   const [result, setResult] = useState(null);
@@ -39,7 +53,7 @@ function App() {
     }
   }
 
-  const isPhishing = result !== null && result.verdict === "Phishing";
+  const level = result ? LEVELS[result.verdict] : null;
 
   return (
     <main className="container">
@@ -60,10 +74,17 @@ function App() {
 
       {error && <p className="error">{error}</p>}
 
-      {result && (
-        <section className={isPhishing ? "result phishing" : "result legitimate"}>
-          <h2>{isPhishing ? "🔴 Phishing Detected" : "🟢 Looks Legitimate"}</h2>
+      {result && level && (
+        <section className={`result ${level.className}`}>
+          <h2>{level.title}</h2>
           <p className="score">Risk Score: {result.risk_score}%</p>
+
+          {result.verdict === "Suspicious" && (
+            <p>
+              The model is not sure about this URL. Do not enter passwords or
+              personal details unless you are certain it is genuine.
+            </p>
+          )}
 
           {result.reasons.length > 0 ? (
             <>
@@ -75,7 +96,7 @@ function App() {
               </ul>
             </>
           ) : (
-            <p>No obvious warning signs were found in the URL.</p>
+            <p>{NO_WARNING_TEXT[result.verdict]}</p>
           )}
 
           <p className="note">

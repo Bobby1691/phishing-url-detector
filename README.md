@@ -22,6 +22,18 @@ Evaluated on a 20% test split (47,159 URLs). Precision, recall and F1 are measur
 
 XGBoost is used as the final model. Random Forest performs almost the same. When the model reports phishing it is right about 96.5% of the time, but it misses about 13% of real phishing URLs.
 
+## Decision levels
+
+The risk score is the predicted probability (in percent) that the URL is phishing. It is turned into three levels. The cutoffs were chosen with a threshold report on the test split (47,159 URLs).
+
+| Risk score | Level |
+|---|---|
+| 80% or more | Phishing |
+| 40% to 80% | Suspicious |
+| Below 40% | Legitimate |
+
+At the 80% cutoff the model is right 99.2% of the time when it reports phishing, and only 127 of 26,970 legitimate test URLs were wrongly reported as phishing. A "legitimate" result is still not a guarantee: about 12% of phishing URLs in the test split score below 40%.
+
 ## Dataset bias
 
 The training dataset contains shortcuts that make a model look better than it really is. Three of them were found while testing with real websites:
@@ -88,7 +100,7 @@ The dataset is not included in this repository. Please check the dataset page fo
 
 - This tool gives a risk estimate, not a guarantee. It can wrongly flag safe websites and can miss real phishing sites.
 - The scores above are measured on one dataset. Real-world URLs may behave differently.
-- Legitimate websites with a real subdomain can get a borderline score. In a manual test, https://mail.google.com/ received about 59% risk and was reported as phishing.
+- Legitimate websites with a real subdomain can get a borderline score. In a manual test, https://mail.google.com/ received about 59% risk and is shown as Suspicious.
 - Only the domain is analyzed, so a phishing page hosted on a trusted domain cannot be detected.
 - The model uses only ten simple domain features.
 - Input is checked only for the shape of a web address. The application does not check whether a domain really exists, so text such as random.word is analyzed like any other domain.
@@ -100,7 +112,6 @@ This project is for defense only. It must not be used to create or improve phish
 
 ## Future work
 
-- A middle "suspicious" level for scores close to 50%
 - More domain features, such as domain age
 - A better balanced dataset with realistic legitimate URLs
 - Browser extension that warns about suspicious sites

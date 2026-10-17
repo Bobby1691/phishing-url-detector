@@ -8,8 +8,9 @@ from validation import InvalidURLError, validate_url
 
 MODEL_PATH = "models/phishing_model.json"
 
-# Risk score (in percent) at or above which a URL is reported as phishing.
-PHISHING_THRESHOLD = 50.0
+# Risk score cutoffs (in percent), chosen with src/threshold_report.py.
+SUSPICIOUS_THRESHOLD = 40.0
+PHISHING_THRESHOLD = 80.0
 
 
 def load_model():
@@ -44,6 +45,7 @@ def get_reasons(features):
 def analyze_url(model, url):
     """Return the verdict, risk score and reasons for a single URL.
 
+    The verdict is "Phishing", "Suspicious" or "Legitimate".
     Raises InvalidURLError if the text is not a valid web address.
     """
     url = url.strip()
@@ -56,7 +58,13 @@ def analyze_url(model, url):
     phishing_probability = model.predict_proba(X)[0][0]
     risk_score = round(float(phishing_probability) * 100, 1)
 
-    verdict = "Phishing" if risk_score >= PHISHING_THRESHOLD else "Legitimate"
+    if risk_score >= PHISHING_THRESHOLD:
+        verdict = "Phishing"
+    elif risk_score >= SUSPICIOUS_THRESHOLD:
+        verdict = "Suspicious"
+    else:
+        verdict = "Legitimate"
+
     return {
         "verdict": verdict,
         "risk_score": risk_score,
@@ -87,6 +95,8 @@ def main():
                 print(f"  - {reason}")
         elif result["verdict"] == "Phishing":
             print("The model flagged this URL from a combination of features.")
+        elif result["verdict"] == "Suspicious":
+            print("The model is not sure about this URL. Be careful with it.")
         else:
             print("No obvious warning signs were found in the URL.")
 
