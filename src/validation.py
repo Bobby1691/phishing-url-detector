@@ -21,7 +21,12 @@ class InvalidURLError(ValueError):
 
 def is_valid_url(url):
     """Return True if the text looks like a web address with a domain or IP."""
-    if not url or len(url) > MAX_URL_LENGTH or any(ch.isspace() for ch in url):
+    if (
+        not isinstance(url, str)
+        or not url
+        or len(url) > MAX_URL_LENGTH
+        or any(ch.isspace() for ch in url)
+    ):
         return False
 
     # If the scheme is missing, assume HTTPS (browsers do the same for typed domains).
